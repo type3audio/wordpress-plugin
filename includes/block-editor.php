@@ -15,8 +15,8 @@ add_action('enqueue_block_editor_assets', function () {
     $script = <<<JS
 ( function() {
     const { registerPlugin } = wp.plugins;
-    const { BlockControls } = wp.blockEditor;
-    const { ToolbarButton, Slot, Fill } = wp.components;
+    const { BlockControls, InspectorControls } = wp.blockEditor;
+    const { ToolbarButton, Slot, Fill, TextControl } = wp.components;
     const { useSelect, useDispatch } = wp.data;
     const { getBlockAttributes, getSelectedBlockClientIds } = wp.data.select('core/block-editor');
     const { updateBlockAttributes } = wp.data.dispatch('core/block-editor');
@@ -82,6 +82,89 @@ add_action('enqueue_block_editor_assets', function () {
                     tagName: 'p',
                     value: attributes.content,
                 }
+            );
+        }
+    });
+
+    // Register a new Type 3 Player block type
+    registerBlockType('t3a/player', {
+        title: 'TYPE III AUDIO Player',
+        description: 'A block that inserts the TYPE III AUDIO player.',
+        icon: 'controls-volumeon',
+        category: 'common',
+        
+        attributes: {
+            attributes: {
+                type: 'string',
+                default: ''
+            }
+        },
+        
+        // Define how the block appears in the editor
+        edit: function(props) {
+            const { attributes, setAttributes } = props;
+            
+            return createElement(
+                Fragment,
+                null,
+                createElement(
+                    InspectorControls,
+                    null,
+                    createElement(
+                        'div',
+                        { className: 't3a-player-inspector' },
+                        createElement(
+                            TextControl,
+                            {
+                                label: 'Player Attributes',
+                                help: 'Enter attributes like: mp3-url="example.mp3" sticky="true"',
+                                value: attributes.attributes,
+                                onChange: (value) => setAttributes({ attributes: value })
+                            }
+                        )
+                    )
+                ),
+                createElement(
+                    'div',
+                    { 
+                        className: 't3a-player-block',
+                        'data-t3a-player': 'true'
+                    },
+                    createElement(
+                        'div',
+                        {
+                            style: {
+                                padding: '0px',
+                                height: '50px',
+                                background: '#f0f0f0',
+                                borderRadius: '4px',
+                                border: '1px dashed #ccc'
+                            }
+                        },
+                        createElement(
+                            'audio',
+                            {
+                                controls: true,
+                                style: {
+                                    width: '100%',
+                                    opacity: '0.5'
+                                }
+                            }
+                        )
+                    )
+                )
+            );
+        },
+        
+        // Define how the block is saved
+        save: function(props) {
+            const { attributes } = props;
+            const shortcode = '[type_3_player' + (attributes.attributes ? ' ' + attributes.attributes : '') + ']';
+            
+            return createElement(
+                'div',
+                null,
+                shortcode
             );
         }
     });
@@ -390,6 +473,47 @@ div[data-must-narrate="true"]::after {
     bottom: 0 !important;
     left: 0 !important;
     border: 2px dashed #008000 !important;
+    border-radius: 4px !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+}
+
+/* Type 3 Player Block Styles */
+.t3a-player-block {
+    position: relative !important;
+    outline: none !important;
+    padding: 8px !important;
+    background-color: rgba(0, 128, 255, 0.03) !important;
+    border-radius: 4px !important;
+}
+
+/* Inspector Controls Styles */
+.t3a-player-inspector {
+    padding: 16px !important;
+}
+
+.t3a-player-block::before {
+    content: "🎧 TYPE III AUDIO Player" !important;
+    display: block !important;
+    position: absolute !important;
+    top: -20px !important;
+    right: 0 !important;
+    background-color: #0080ff !important;
+    color: white !important;
+    padding: 2px 8px !important;
+    font-size: 11px !important;
+    border-radius: 3px !important;
+    z-index: 99999 !important;
+}
+
+.t3a-player-block::after {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    border: 2px dashed #0080ff !important;
     border-radius: 4px !important;
     pointer-events: none !important;
     z-index: 1 !important;
