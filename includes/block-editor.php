@@ -94,7 +94,7 @@ add_action('enqueue_block_editor_assets', function () {
         category: 'common',
         
         attributes: {
-            attributes: {
+            playerAttributes: {
                 type: 'string',
                 default: ''
             }
@@ -118,8 +118,8 @@ add_action('enqueue_block_editor_assets', function () {
                             {
                                 label: 'Player Attributes',
                                 help: 'Enter attributes like: mp3-url="example.mp3" sticky="true"',
-                                value: attributes.attributes,
-                                onChange: (value) => setAttributes({ attributes: value })
+                                value: attributes.playerAttributes,
+                                onChange: (value) => setAttributes({ playerAttributes: value })
                             }
                         )
                     )
@@ -159,7 +159,7 @@ add_action('enqueue_block_editor_assets', function () {
         // Define how the block is saved
         save: function(props) {
             const { attributes } = props;
-            const shortcode = '[type_3_player' + (attributes.attributes ? ' ' + attributes.attributes : '') + ']';
+            const shortcode = '[type_3_player' + (attributes.playerAttributes ? ' ' + attributes.playerAttributes : '') + ']';
             
             return createElement(
                 'div',

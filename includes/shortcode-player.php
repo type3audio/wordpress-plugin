@@ -38,7 +38,7 @@ function type_3_player($atts) {
     
     if (!t3a_is_hardcoded_mp3_url($atts)) {
         if (!t3a_is_post_published()) {
-            $html = "<p>The audio player will display here when this post is published.</p>";
+            $html = "<p style='padding: 10px; border: 1px dashed #ccc; border-radius: 4px; text-align: center;'>The TYPE III AUDIO player will display here when this post is published.</p>";
             return $html;
         }
     }
