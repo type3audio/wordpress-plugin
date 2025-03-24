@@ -277,6 +277,15 @@ div[data-type="t3a/audio-note"] {
     border-radius: 4px !important;
 }
 
+/* Remove top margin from first and last paragraphs in audio notes */
+div[data-type="t3a/audio-note"] p:first-child {
+    margin-top: 0 !important;
+}
+
+div[data-type="t3a/audio-note"] p:last-child {
+    margin-bottom: 0 !important;
+}
+
 div[data-type="t3a/audio-note"]::before {
     content: "📝 Audio note" !important;
     display: block !important;
