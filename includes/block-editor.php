@@ -117,21 +117,11 @@ add_action('enqueue_block_editor_assets', function () {
             
             const { attributes, setAttributes, clientId } = props;
             const isDoNotNarrateActive = attributes?.doNotNarrate || false;
-            const isAudioNoteActive = attributes?.audioNote || false;
             
             const toggleDoNotNarrate = () => {
                 const currentValue = attributes?.doNotNarrate || false;
                 setAttributes({
-                    doNotNarrate: !currentValue,
-                    audioNote: currentValue ? attributes?.audioNote : false
-                });
-            };
-            
-            const toggleAudioNote = () => {
-                const currentValue = attributes?.audioNote || false;
-                setAttributes({
-                    audioNote: !currentValue,
-                    doNotNarrate: currentValue ? attributes?.doNotNarrate : false
+                    doNotNarrate: !currentValue
                 });
             };
             
@@ -152,15 +142,6 @@ add_action('enqueue_block_editor_assets', function () {
                             title: 'Do not narrate',
                             onClick: toggleDoNotNarrate,
                             isActive: isDoNotNarrateActive
-                        }
-                    ),
-                    createElement(
-                        ToolbarButton,
-                        {
-                            icon: 'playlist-audio',
-                            title: 'Audio note',
-                            onClick: toggleAudioNote,
-                            isActive: isAudioNoteActive
                         }
                     )
                 )
@@ -185,11 +166,7 @@ add_action('enqueue_block_editor_assets', function () {
                 doNotNarrate: {
                     type: 'boolean',
                     default: false,
-                },
-                audioNote: {
-                    type: 'boolean',
-                    default: false,
-                },
+                }
             };
             return settings;
         }
@@ -212,9 +189,6 @@ add_action('enqueue_block_editor_assets', function () {
             if ( attributes?.doNotNarrate ) {
                 props['data-do-not-narrate'] = 'true';
             }
-            if ( attributes?.audioNote ) {
-                props['data-audio-note'] = 'true';
-            }
             return props;
         }
     );
@@ -230,9 +204,6 @@ add_action('enqueue_block_editor_assets', function () {
                 
                 if ( attributes?.doNotNarrate ) {
                     wrapperProps['data-do-not-narrate'] = 'true';
-                }
-                if ( attributes?.audioNote ) {
-                    wrapperProps['data-audio-note'] = 'true';
                 }
                 
                 return createElement( BlockListBlock, { ...props, wrapperProps } );
@@ -298,8 +269,6 @@ div[data-do-not-narrate="true"]::after {
 }
 
 /* Audio Note Block Styles */
-.wp-block[data-audio-note="true"],
-.block-editor-block-list__block[data-audio-note="true"],
 div[data-type="t3a/audio-note"] {
     position: relative !important;
     outline: none !important;
@@ -308,8 +277,6 @@ div[data-type="t3a/audio-note"] {
     border-radius: 4px !important;
 }
 
-.wp-block[data-audio-note="true"]::before,
-.block-editor-block-list__block[data-audio-note="true"]::before,
 div[data-type="t3a/audio-note"]::before {
     content: "📝 Audio note" !important;
     display: block !important;
@@ -324,8 +291,6 @@ div[data-type="t3a/audio-note"]::before {
     z-index: 99999 !important;
 }
 
-.wp-block[data-audio-note="true"]::after,
-.block-editor-block-list__block[data-audio-note="true"]::after,
 div[data-type="t3a/audio-note"]::after {
     content: "" !important;
     position: absolute !important;
@@ -341,9 +306,7 @@ div[data-type="t3a/audio-note"]::after {
 
 /* Additional selectors to handle nested blocks */
 .wp-block[data-do-not-narrate="true"] > .wp-block-group__inner-container,
-.block-editor-block-list__block[data-do-not-narrate="true"] > .wp-block-group__inner-container,
-.wp-block[data-audio-note="true"] > .wp-block-group__inner-container,
-.block-editor-block-list__block[data-audio-note="true"] > .wp-block-group__inner-container {
+.block-editor-block-list__block[data-do-not-narrate="true"] > .wp-block-group__inner-container {
     position: relative !important;
     z-index: 2 !important;
 }
