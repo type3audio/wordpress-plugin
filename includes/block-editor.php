@@ -16,14 +16,15 @@ add_action('enqueue_block_editor_assets', function () {
 ( function() {
     const { registerPlugin } = wp.plugins;
     const { BlockControls } = wp.blockEditor;
-    const { ToolbarButton } = wp.components;
+    const { ToolbarButton, Slot, Fill } = wp.components;
     const { useSelect, useDispatch } = wp.data;
     const { getBlockAttributes, getSelectedBlockClientIds } = wp.data.select('core/block-editor');
     const { updateBlockAttributes } = wp.data.dispatch('core/block-editor');
     const { addFilter } = wp.hooks;
-    const { createElement } = wp.element;
+    const { createElement, Fragment } = wp.element;
     const { registerBlockType } = wp.blocks;
     const { RichText } = wp.blockEditor;
+    const { createHigherOrderComponent } = wp.compose;
 
 
     // Register a new Audio Note block type
@@ -84,6 +85,95 @@ add_action('enqueue_block_editor_assets', function () {
             );
         }
     });
+    
+    // Function to check if the block type is allowed to have our buttons
+    const isAllowedBlockType = (blockName) => {
+        const allowedBlockTypes = [
+            'core/paragraph',
+            'core/heading',
+            'core/list',
+            'core/quote',
+            'core/code',
+            'core/details',
+            'core/preformatted',
+            'core/pullquote',
+            'core/table',
+            'core/verse',
+            'core/freeform', // Classic block
+            'core/media-text',
+            'core/group'
+        ];
+        
+        return allowedBlockTypes.includes(blockName);
+    };
+
+    // Create a higher-order component that adds our custom toolbar
+    const withT3AToolbar = createHigherOrderComponent((BlockEdit) => {
+        return (props) => {
+            // Only add toolbar for allowed block types
+            if (!isAllowedBlockType(props.name)) {
+                return createElement(BlockEdit, props);
+            }
+            
+            const { attributes, setAttributes, clientId } = props;
+            const isDoNotNarrateActive = attributes?.doNotNarrate || false;
+            const isAudioNoteActive = attributes?.audioNote || false;
+            
+            const toggleDoNotNarrate = () => {
+                const currentValue = attributes?.doNotNarrate || false;
+                setAttributes({
+                    doNotNarrate: !currentValue,
+                    audioNote: currentValue ? attributes?.audioNote : false
+                });
+            };
+            
+            const toggleAudioNote = () => {
+                const currentValue = attributes?.audioNote || false;
+                setAttributes({
+                    audioNote: !currentValue,
+                    doNotNarrate: currentValue ? attributes?.doNotNarrate : false
+                });
+            };
+            
+            return createElement(
+                Fragment,
+                null,
+                createElement(
+                    BlockEdit,
+                    props
+                ),
+                createElement(
+                    BlockControls,
+                    { group: 'block' },
+                    createElement(
+                        ToolbarButton,
+                        {
+                            icon: 'microphone',
+                            title: 'Do not narrate',
+                            onClick: toggleDoNotNarrate,
+                            isActive: isDoNotNarrateActive
+                        }
+                    ),
+                    createElement(
+                        ToolbarButton,
+                        {
+                            icon: 'playlist-audio',
+                            title: 'Audio note',
+                            onClick: toggleAudioNote,
+                            isActive: isAudioNoteActive
+                        }
+                    )
+                )
+            );
+        };
+    }, 'withT3AToolbar');
+    
+    // Add the toolbar to the block editor
+    addFilter(
+        'editor.BlockEdit',
+        't3a/toolbar',
+        withT3AToolbar
+    );
     
     // Register support for both attributes for all blocks
     addFilter(
@@ -150,121 +240,6 @@ add_action('enqueue_block_editor_assets', function () {
         }
     );
 
-    const DoNotNarrateButton = ( props ) => {
-        const selectedBlockClientIds = useSelect( () => getSelectedBlockClientIds(), [] );
-
-        if ( ! selectedBlockClientIds.length ) {
-            return null;
-        }
-
-        const firstBlockAttrs = getBlockAttributes( selectedBlockClientIds[0] );
-        const isActive = firstBlockAttrs?.doNotNarrate || false;
-
-        const onToggle = () => {
-            selectedBlockClientIds.forEach( ( clientId ) => {
-                const attrs = getBlockAttributes( clientId );
-                const currentValue = attrs?.doNotNarrate || false;
-                // When enabling doNotNarrate, disable audioNote
-                updateBlockAttributes( clientId, { 
-                    doNotNarrate: !currentValue,
-                    audioNote: currentValue ? attrs?.audioNote : false 
-                });
-            } );
-        };
-
-        return createElement(
-            BlockControls,
-            {
-                group: 'block'
-            },
-            createElement(
-                ToolbarButton,
-                {
-                    icon: 'microphone',
-                    title: 'Do not narrate',
-                    onClick: onToggle,
-                    isActive: isActive
-                }
-            )
-        );
-    };
-
-    const AudioNoteButton = ( props ) => {
-        const selectedBlockClientIds = useSelect( () => getSelectedBlockClientIds(), [] );
-
-        if ( ! selectedBlockClientIds.length ) {
-            return null;
-        }
-
-        const firstBlockAttrs = getBlockAttributes( selectedBlockClientIds[0] );
-        const isActive = firstBlockAttrs?.audioNote || false;
-
-        const onToggle = () => {
-            selectedBlockClientIds.forEach( ( clientId ) => {
-                const attrs = getBlockAttributes( clientId );
-                const currentValue = attrs?.audioNote || false;
-                // When enabling audioNote, disable doNotNarrate
-                updateBlockAttributes( clientId, { 
-                    audioNote: !currentValue,
-                    doNotNarrate: currentValue ? attrs?.doNotNarrate : false 
-                });
-            } );
-        };
-
-        return createElement(
-            BlockControls,
-            {
-                group: 'block'
-            },
-            createElement(
-                ToolbarButton,
-                {
-                    icon: 'playlist-audio',
-                    title: 'Audio note',
-                    onClick: onToggle,
-                    isActive: isActive
-                }
-            )
-        );
-    };
-
-    // Register the filter to add our buttons to all blocks
-    addFilter(
-        'editor.BlockEdit',
-        't3a/buttons',
-        ( BlockEdit ) => ( props ) => {
-            // Only show buttons for specific block types
-            const allowedBlockTypes = [
-                'core/paragraph',
-                'core/heading',
-                'core/list',
-                'core/quote',
-                'core/code',
-                'core/details',
-                'core/preformatted',
-                'core/pullquote',
-                'core/table',
-                'core/verse',
-                'core/freeform', // Classic block
-                'core/media-text',
-                'core/group'
-            ];
-            
-            if (!allowedBlockTypes.includes(props.name)) {
-                return createElement(BlockEdit, props);
-            }
-            
-            return createElement(
-                wp.element.Fragment,
-                null,
-                createElement( DoNotNarrateButton, props ),
-                createElement( AudioNoteButton, props  ),
-                createElement( BlockEdit, props )
-            );
-        }
-    );
-    
- 
 } )();
 JS;
 
@@ -272,7 +247,7 @@ JS;
     wp_register_script(
         't3a-do-not-narrate-editor',
         '', // We'll add the JS inline.
-        array('wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-data', 'wp-block-editor', 'wp-hooks'),
+        array('wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-data', 'wp-block-editor', 'wp-hooks', 'wp-plugins', 'wp-compose'),
         '1.0',
         true
     );
