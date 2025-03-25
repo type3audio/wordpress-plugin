@@ -436,7 +436,6 @@ div[data-must-narrate="true"] {
     position: relative !important;
     outline: none !important;
     padding: 8px !important;
-    background-color: rgba(0, 128, 0, 0.03) !important;
     border-radius: 4px !important;
 }
 
