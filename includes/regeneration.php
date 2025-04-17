@@ -24,6 +24,15 @@ function t3a_send_regenerate_request($post_ID, $post, $update) {
         return;
     }
 
+    // Check for transient to prevent duplicate calls
+    $transient_key = 't3a_regenerate_lock_' . $post_ID;
+    if (get_transient($transient_key)) {
+        return; // Skip if we've processed this post in the last 5 seconds
+    }
+
+    // Set transient for 5 seconds
+    set_transient($transient_key, true, 5);
+
     $post_url = get_permalink($post_ID);
     $post_type = get_post_type($post_ID);
     $auth_key = get_option("type_iii_audio_auth_key");
