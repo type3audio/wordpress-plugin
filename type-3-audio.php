@@ -3,7 +3,7 @@
  * Plugin Name: TYPE III AUDIO - Audio player & automatic narration
  * Plugin URI: https://type3.audio
  * Description: Audio player for your MP3s. Narrations for your web pages.
- * Version: 1.4
+ * Version: 1.5
  * Text Domain: type_3_player
  * Author: TYPE III AUDIO
  * Author URI: https://type3.audio
