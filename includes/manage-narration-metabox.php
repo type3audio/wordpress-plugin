@@ -108,6 +108,12 @@ function t3a_render_manage_narration_metabox($post) {
 
     $permalink = get_permalink($post);
 
+    // Normalize 80000hours.org subdomains to production domain
+    $host = wp_parse_url($permalink, PHP_URL_HOST);
+    if ($host && strpos($host, '80000hours.org') !== false && $host !== '80000hours.org') {
+        $permalink = str_replace($host, '80000hours.org', $permalink);
+    }
+
     if (!$post) {
         echo '<p>' . esc_html__('Unable to determine the post being edited.', 'type_3_player') . '</p>';
         return;
